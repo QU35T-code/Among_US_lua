@@ -1,3 +1,3 @@
 @ECHO OFF
 
-start " " "%PROGRAMFILES%\LOVE\love.exe" "%CD%"
+start " " "%PROGRAMFILES%\lua\lua.exe" "%CD%"

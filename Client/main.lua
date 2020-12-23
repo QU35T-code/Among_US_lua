@@ -6,21 +6,24 @@ udp:settimeout(0)
 
 local fileMenu = require('menu')
 local fileDropship = require('dropship')
-gameState = {}
+local filePlayer = require('player_creation')
 
+gameState = {}
+gameState.menu = false
+gameState.dropship = true
 
 function love.load()
-    love.window.setFullscreen(true)
-	gameState.menu = true
-	gameState.dropship = false
-
-	fileMenu.load_my_menu()
-	fileDropship.load_my_dropship()
-	camera = {}
-	camera.x = player.x
-	camera.y = player.y
+    --[[love.window.setFullscreen(true)--]]
+	
+    if (gameState.dropship) then
+		fileDropship.load_my_dropship()
+		filePlayer.load_my_player()
+	end
+	
+	
 	screenW = love.graphics.getWidth()
 	screenH = love.graphics.getHeight()
+	fileMenu.load_my_menu()
    
 
 	-- Send seed 
@@ -36,47 +39,37 @@ function love.draw()
 		fileMenu.draw_my_menu()
 	end
 	if (gameState.dropship) then
+		love.graphics.translate(camera.x, camera.y)
+		love.graphics.draw(dropship, (screenW/2) - ((dropshipW*2)/2), 0, 0, 2, 2)
+		love.graphics.draw(bdropship, 293, 617*2, 0, 2, 2)
+		filePlayer.draw_my_player()
 		fileDropship.draw_my_dropship()
 	end
+end
+
+function sleep(sec)
+    socket.select(nil, nil, sec)
+end
+
+
+function areAlive(dt)
+	udp:send("Alive"..'-'..tostring(seed))
 end
 
 function love.update(dt)
 	if (gameState.menu) then
 		fileMenu.update_my_menu(dt)
 	end
-	-- PLAYER
-	if (love.keyboard.isDown("s")) then
-		player.y = player.y + player.speed
+	if (gameState.dropship) then
+		fileDropship.update_my_dropship(dt)
+		areAlive(dt)
+		filePlayer.update_my_player(dt)
 	end
-	if (love.keyboard.isDown("z")) then
-		player.y = player.y - player.speed
-	end
-	if (love.keyboard.isDown("q")) then
-		player.x = player.x - player.speed
-	end
-	if (love.keyboard.isDown("d")) then
-		player.x = player.x + player.speed
-	end
-
-	camera.tx = -(player.x) + screenW/2
-	camera.ty = -(player.y) + screenH/2
-	camera.x = camera.x + ((camera.tx - camera.x))
-	camera.y = camera.y + ((camera.ty - camera.y))
-
 end
 
---[[function split(s, delimiter)
-	result = {}
-	for match in (s..delimiter):gmatch("(.-)"..delimiter) do
-		table.insert(result, match)
-	end
-	return result
-end--]]
-
 function love.mousepressed(x, y, button)
-	if (button == 1) then
-		--[[print(x)
-		print(y)--]]
+	if (gameState.menu) then
+		fileMenu.mousepressed_my_menu(x, y, button)
 	end
 end
 
